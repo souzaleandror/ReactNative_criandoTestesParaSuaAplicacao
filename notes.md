@@ -260,3 +260,246 @@ Conceitos de testes de unidade, integração e interface;
 Vantagens e desvantagens de testar uma aplicação;
 Revisão do projeto já existente de leilões;
 Quais as bibliotecas mais comuns para testes em React Native, como a jest.
+
+#### 26/12/2023
+
+@02-Teste de Unidade
+
+@@01
+Instalando o jest
+
+[00:00] Para começar a fazer os testes de unidade no projeto, vamos utilizar a biblioteca Expo. E como já sabemos a biblioteca Expo vem instalada no React Native nas versões mais recentes, mas como estamos utilizando o Expo, essa biblioteca ainda não vem instalada. Então vamos instalar a biblioteca Jest no nosso projeto.
+[00:22] Para fazer isso, vamos seguir as orientações da documentação do próprio Expo, porque tem algumas diferenças para conseguirmos instalar a versão certa compatível com o Expo. Caso você esteja rodando no React Native puro, você pode seguir a documentação do próprio Jest para instalar tranquilamente que não vai precisar fazer essas configurações que vamos fazer agora. Na verdade eu, se você estiver utilizando o React Native na versão mais recente vai vir instalada e em uma versão antiga você vai precisar instalar.
+
+[00:52] Aqui no site “expo.dev” vou digitar test e ele tem uma página Testing with Jest que é “docs.expo.dev/guides/testing-with-jest/”. Aqui ele fala que vamos precisar fazer uma instalação. A primeira coisa que queremos instalar é o jest-expo que é um Jest com algumas coisas do Expo já configuradas para nós e aí precisamos instalar o Jest também.
+
+[01:33] Para que ele pegue a versão certa precisamos rodar o comando expo install jest-expo jest, porque se instalarmos normalmente com o comando npm install -- save dev que você pode vê-lo no Jest, ele não vai instalar a biblioteca correta e podem ocorrer erros no final quando formos fazer alguns outros tipos de testes.
+
+[01:58] Segure essa vontade de instalar normalmente e instale dessa forma aqui. Vou copiar esse comando e vou colocar aqui no terminal no VS Code mesmo. Vou clicar aqui em cima em "Terminal > New Terminal" e vou colar o comando aqui para ele instalar, ele já abre o terminal dentro da pasta do projeto. Se você quiser navegar para a pasta do projeto manualmente pode navegar. expo install jest-expo jest. Vamos aguardar e ele vai utilizar o npm install para instalar as versões compatíveis.
+
+[02:34] Já instalou aqui, vamos ver no "package.json" quais são as versões, caso você precise instalar exatamente essas versões. Repare que ele colocou em "dependencies" e não em "dev dependencies", ele instalou o "jest" na versão 26.6.3 e o "jest-expo" na versão 44.0.1. Agora que já temos as versões instaladas, podemos criar um script para rodar o Jest.
+
+[03:03] Aqui dentro do "package.json" temos os scripts, lembra que tem o script da API que trocamos o IP. Vamos criar um novo script, um novo nome para podermos chamar um código mais facilmente. Esse script vai chamar-se test com T mudo, test em inglês, e vamos colocar o comando Jest, "test": "jest", simplesmente assim.
+
+[03:36] Vou rodar agora aqui no terminal o comando npm test e vamos ver o que acontece. Ele rodou e disse que não foram encontrados testes. Isso aqui está rodando certinho, não foram encontrados testes porque não fizemos nenhum teste ainda para a nossa aplicação. Repare que eu não dei o npm run test, igual fizemos com o npm run api, porque test é um script já comum, ele já sabe que se você rodar npm test, ele não precisa desse run. Já no caso da API como não é um script o NPM conhece ele vai precisar rodar com npm run api.
+
+[04:25] Rodamos aqui, funcionou, mas ainda tem algumas coisas que precisamos dar uma olhada na documentação do Expo aqui. Ele até está mostrando que vamos fazer esse script para poder rodar o teste mais facilmente e ele está dizendo aqui também podemos querer fazer mais umas configurações, que são as configurações do Jest. Dentro do "package.json", eu vou copiar essa parte aqui documentação. Logo abaixo dos scripts temos uma propriedade "jest": { "preset": "jest-expo" }.
+
+[05:03] Eu vou copiar e vou colocar aqui no final do "package.json". Isso quer dizer que não vamos rodar com Jest puro mesmo, vamos rodar os testes com o "jest-expo" para não termos nenhum problema. Vou salvar aqui e vamos dar uma olhada na documentação. Ele mostra aqui como é que instala "react-test-renderer", mas não vamos instalar agora ainda, vamos instalar mais tarde, e também tem algumas outras configurações que podemos querer fazer.
+
+[05:41] Na sessão Jest Configuration tem o "transformIgnorePatterns". Vamos copiar todos esses transforms patterns e colocar junto nesse objeto Jest no nosso "package.json". Tem alguns arquivos do Babel que ele compila e, quando rodamos os testes, pode ser que ele não compile alguns específicos. Assim, no teste, ele se perde e não consegue rodar. Esse "transformIgonorePatterns" é para ignorar essas coisas que ele não conseguiu transformar.
+
+[06:18] Neste caso que estamos no React Native pode ser interessante fazermos isso, repare que é tudo dentro do "node_modules". Isso aqui é uma regex para dentro do node_modules/, então ele tem vários padrões de arquivos, de bibliotecas, que pode ser que dê esse problema e ele já tenta evitar isso.
+
+[06:40] Caso tenha uma biblioteca nova que dê esse problema, podemos simplesmente adicionar aqui no final /react-native-svg. Podemos colocar barra e o nome da biblioteca, a pasta que está dando problema. Eu vou copiar esse "transformIgonorePatterns" e vou colocar aqui dentro do "package.json", dentro dessa propriedade Jest.
+
+[07:16] Vamos ver se tem mais alguma coisa que precisamos fazer no momento e ele já mostra um exemplo aqui. No momento é apenas isso que precisamos fazer, no próximo vídeo vamos começar a fazer os testes de unidade em si. Podemos ainda testar aqui se está rodando conforme o esperado, vou rodar novamente npm test e ele vai mostrar a mesma mensagem. Vamos fazer os testes de unidade.
+
+@@02
+Criando Testes de Unidade
+
+[00:00] Agora vamos começar a fazer os testes de unidade. Vamos olhar para a nossa aplicação, para uma função, alguma coisa que possamos testar.
+[00:09] Aqui em "src > negocio > formatadores > moedas.js" temos algumas funções simples para começar. Por exemplo, essa segunda função aqui da linha 8 é formataBrasileiroParaDecimal(valor), ela recebe um valor em string e ajusta a pontuação, remove os pontos e adiciona ponto onde tinha vírgula porque quando digitamos em brasileiro, digamos assim, no formato que usamos aqui no Brasil digitamos 10,5.
+
+[00:43] Mas o computador vai entender apenas 10.5, por isso temos que substituir isso e usar a função parseFloat do JavaScript para conseguirmos retornar um valor em float mesmo, em um ponto flutuante no valor decimal que o JavaScript entenda.
+
+[01:01] Vamos testar essa função aqui para ver se conseguimos validá-la e vamos conferir se está tudo funcionando corretamente e evitar também que alguma alteração cause problemas na nossa aplicação. Para começar vamos criar uma pasta que vai armazenar todos os nossos testes, esse é um tipo de estrutura de testes que existe, vamos criar aqui dentro da pasta do projeto que neste caso é "leilaoTeste", mas quando você baixa pode ser que tenha outro nome, se você renomear também pode ter outro nome.
+
+[01:35] Vamos criar uma nova pasta, new folder, e essa pasta vai ser __tests__, esse é um padrão que podemos fazer de testes e aí vamos criando a estrutura de pastas igual temos dentro de "src".
+
+[01:58] Nesse caso vamos criar uma pasta chamada "negocio", outra pasta chamada "formatadores", “tests/negocio/formatadores”. E aí criamos um arquivo que vai corresponder ao arquivo de "moeda.js", mas temos um padrão também para criar arquivos de teste, vamos criar um novo arquivo dentro desta pasta "formatadores" que vai ser: “moeda.test.js”.
+
+[02:34] Repare que ele até já colocou aqui o JS e ficou na cor laranja, O VS Code colocou o ícone na cor laranja diferente do ícone na cor amarela dos arquivos de JavaScript normal, ele já sabe que esse é um arquivo de teste. É um padrão para nomearmos os arquivos de teste.
+
+[02:52] Existem outros padrões também, por exemplo, como colocar o próprio arquivo de teste dentro da pasta do "src" para você não precisar voltando pastas para importar os arquivos, porém, eu acho que fica muita coisa aqui dentro da pasta, ficam muitos conceitos diferentes, tendo a implementação e o teste dentro da mesma pasta. Eu gosto desse formato aqui, mas você pode utilizar, depois dos projetos, padrões diferentes. O recomendado é que você mantenha o mesmo padrão dentro do projeto inteiro.
+
+[03:24] No nosso projeto vamos utilizar esse padrão, criando duas pastas: __tests__/negocio/formatadores e moeda.test.js. Dentro do arquivo "moeda.test.js" queremos testar a função formataBrasileiroParaDecimal do arquivo "moeda.js", precisamos primeiro importar esse arquivo.
+
+[03:50] Eu vou importar como importamos os outros arquivos JavaScript, com import, e vou abrir chaves porque é uma função que está sendo exportada, não é default então import { formataBrasileiroParaDecimal } from e precisamos voltar as pastas , voltamos uma pasta para entrar dentro do negócio, voltamos mais uma pasta para entrar dentro do teste e voltamos mais uma pasta, ”../../../src/negocio/formatadores/moeda";. Vamos salvar aqui e aí podemos começar o nosso teste em si.
+
+[04:50] Geralmente queremos descrever o que vamos fazer de fato nesse teste, é legal termos, onde estamos testando, uma descrição para sabermos depois, caso o teste falhar, o que está falhando de fato. No Jest para testar podemos usar uma propriedade, uma função global chamada describe, e como é uma função abrimos parênteses. O primeiro parâmetro dessa função que eu vou passar será uma descrição mesmo e eu vou passar a URL de onde estamos trabalhando, digamos assim.
+
+[05:28] Pode ser qualquer coisa que você quiser, se você quiser escrever um texto detalhado que está testando, mas como estamos testando negocio/formatadores/moeda eu vou escrever isso mesmo no primeiro parâmetro, describe(“negocio/formatadores/moeda”).
+
+[05:46] Precisamos passar um segundo parâmetro para essa função describe que vai ser uma nova função, eu vou abrir aqui uma função e vou abrir chaves e apertar "Enter" para que possamos escrever coisas aqui dentro. Tudo que estiver nessa função vai ser descrito por esse describe que fizemos aqui: describe{"negocio/formatadores/moeda", () => { });. Agora os testes do negocio/fornecedores/moeda vão estar descritos aqui dentro desse describe.
+
+[06:14] Eu vou criar mais um describe para descrever a função que eu quero testar, eu posso criar quantos eu quiser. Vou criar describe(“formataBrasileiroParaDecimal”, () => {}) e, assim como no outro describe, o segundo parâmetro vai ser um função e tudo que estiver aqui dentro vai ser correspondente ao formataBrasileiroParaDecimal e o negocio/formatadores/moeda. Depois quando for testar a outra função eu vou criar um outro describe para a função formataDecimalParaReal, por exemplo.
+
+[07:04] Agora dentro do describe vamos criar o teste mesmo, para isto existem duas formas basicamente mais comum para criar o teste que é utilizar a função test e também utilizar a função it, elas são atalhos uma para a outra. Eu vou utilizar a it mesmo, que é para descrever. Você consegue fazer uma sentença em inglês mesmo. Vamos escrever em português, mas vai ser a mesma lógica do inglês. Então, it e vamos chamar a função formataBrasileiroParaDecimal para formatar algum valor, eu vou escrever aqui o que eu quero que desse teste: it("deve retornar 8.59 quando o valor for '8,59'”). Ele deve retornar 8.59, uma valor decimal que o JavaScript pode entender, quando eu passar 8,59 para essa função.
+
+[08:37] Terminou a string, vou colocar uma vírgula e abrir função novamente. it("deve retornar 8.59 quando dor '8,59'", () => { });.
+
+[08:42] Nos testes sempre vamos fazer nesse formato aqui de abrir uma função e as coisas vão fincando dentro dessas funções. Dentro desse teste vamos chamar a função formataBrasileiroParaDeciamal, vou criar uma constante, const resultado = formataBrasileiroParaDecimal e vou passar o número que eu falei que vai ser uma string, const resultado = formataBrasileiroParaDecimal("8,59");. Passei uma string 8,59 e vamos dar um console.log no que está vindo do resultado para vermos o que é, console.log(resultado);.
+
+[09:30] Vou salvar e nada vai acontecer, porque não estamos rodando nada. Vou dar um npm no terminal, npm test, e ele vai rodar. Repare que ele já achou o teste dentro de tests/negocio/formatadores/moeda.test.js e testou. Passou, porque não deu nenhum erro, ele considera que passou, e ele deu console.log 8.59, que é exatamente o que o queríamos, o que estávamos descrevendo aqui cima.
+
+[10:09] Embora tenha passado aqui, é legal sempre validarmos se o valor é igual ao que estamos esperando, porque pode ser que o formataBrasileiroParaDecimal não der nenhum erro, mas ele não retorna o que queremos, não estamos validando se ele está retornando isso mesmo, só estamos chamando ele e vendo se não tem nenhum erro.
+
+[10:30] Para validar se 8,59 vai retornar 8.59 podemos chamar uma propriedade global do Jest que é chamada de expect, expect(resultado).toBe(8.59);. Vou apagar esse console.log(resultado) e vou rodar novamente.
+
+[11:22] Pronto, temos o nosso teste passando aqui. Caso o fomataBrasileiroParaDecimal tenha algum problema aqui no meio e retorne alguma coisa incorreta, por exemplo, eu vou colocar aqui 8.598, supondo que tenha algum erro, isso aqui não está certo, depois que rodo npm test e ele deu falha e ele me diz onde que está a falha, por isso damos o describe, ele diz aqui negocio/formatadores/moeda > formataBrasileiraParaDecimal > deve retornar 8.59 quando o valor for '8,59'.
+
+[12:08] E ele diz aqui que esperava receber 8.598, que está errado, já que recebeu 8.59. É isso que vai aparecer quando o nosso teste falhar.
+
+[12:19] Vou corrigir aqui o expect para ele não falhar e vamos fazer um teste de outra função. Aqui abaixo do describe formataBrasileiraParaDecimal eu vou fazer um teste da outra função que é: describe ("formataDecimalParaReal", () => { }). Abre uma função e dentro dela vamos ter o nosso teste. Nessa função específica vamos testar: it("deve retornar R$ 8,59 quando o valor for 8,59”, () => {}) e vou colocar R$ que é em formato em real, 8,59 quando o valor for 8.59. O segundo parâmetro é aquela função que precisamos colocar o que queremos testar dentro dela.
+
+[13:38] Agora precisamos importar essa outra função, já importamos: import { formataBrasileiroParaDecimal, formataDecimalParaReal } e aí vamos chamar essa função aqui. Vou criar embaixo desse teste que estamos criando uma constante: const resultado = formataDecimalParaReal e aqui eu preciso passar um decimal que vai ser 8.59, const resultado = formataDecimalRapaReal(8.59);
+
+[14:14] Agora esperamos que esse resultado seja R$ 8,59. Vamos fazer isso: expect(resultado).toBe("R$ 8,59"); e vamos ver o que acontece. Vamos rodar e deu falha.
+
+[14:50] Deu falha porque aqui ele está esperando receber R$ 8,59 e está recebendo o esperando. Aqui estamos vendo a mesma string, mas o problema é que esse espaço aqui, no INTL dessa biblioteca de formatação, usa um espaço muito diferente que estamos acostumados e não adianta nem copiar aqui porque não está funcionando, não vai funcionar.
+
+[15:22] Precisamos fazer um expect diferente, nesse caso vamos fazer uma regex, uma expressão regular. Para validarmos uma expressão regular utilizamos, ao invés de toBe, o toMatch. Na expressão regular, vamos usar a barra no começo, ao invés das aspas, vai ser: expect(resultado).toMatch(/R$8,59/);, onde tinha aspas eu utilizei barra, a barra normal mesmo de comentário, mas só uma barra. Repare que o cifrão está com uma cor diferente porque o cifrão de real é um caractere da regex, um caractere especial.
+
+[16:18] Para não utilizarmos ele como caractere especial e sim como uma string vamos colocar outra barra, dessa vez será a barra invertida. Vamos colocar uma barra invertida antes do $, expect(resultado).toMatch(/R\$ 8,59/);. Agora esse cifrão aqui não vai ser um caractere especial e sim uma string normal. E aqui no meio, onde tinha esse espaço, vamos chamar uma regex de espaço mesmo porque temos um caractere específico, uma função, digamos assim, do regex para representar qualquer tipo de espaço. Esse caractere é /s, expect(resultado).toMatch(/R\$\s8,59/);.
+
+[16:59] Isso significa que esperamos que o resultado tenha validade com essa expressão regular. A expressão regular começa com a barra e termina com a barra, não é mais as aspas. E vamos ter um \$, vamos ter um cifrão, vamos ter um espaço, \s, qualquer espaço pode ser um tab, pode ser qualquer coisa 8,59 e fechamos a expressão regular. Vamos salvar e rodar o teste novamente. Agora sim, o nosso teste passou.
+
+[17:35] Esse é um caso muito específico que podemos utilizar o toMatch. Não existe só o toBe e o toMatch, existem vários expects que podemos utilizar, vamos ter um "Saiba Mais" a seguir, que vai mostrar mais expects que você pode utilizar nos seus testes. Além disso, também vamos ter outro "Saiba Mais" falando sobre describe, sobre o it, sobre o test e sobre outras funções globais que podemos utilizar no Jest.
+
+[18:06] Confira essas funções globais que podemos te ajudar muito, a saber, o que você pode fazer com testes. Não vamos ver todas elas porque são muitas, funções globais e expects são muitas, olhe para você saber o que você pode fazer. Até breve.
+
+@@03
+Para saber mais: lista de Expects
+PRÓXIMA ATIVIDADE
+
+Para checar se os valores nos testes são os esperados, usamos expects. Na biblioteca jest, existem várias formas de fazer isso, sendo as principais:
+toBe(): compara inteiros ou textos;
+toBeCloseTo(): compara pontos flutuantes obtidos através de operações matemáticas, pois, devido a arredondamentos, podem haver erros com toBe();
+toBeFalsy()/toBeTruthy(): compara valores falsos/verdadeiros em um contexto booleano. No caso de falsy, não apenas false será validado, mas valores como null, 0, '', undefined e NaN também. O restante dos valores é considerado truthy;
+toEqual(): compara objetos, verificando se as propriedades internas são iguais. Usar toBe() não retornará o mesmo resultado.
+Todos os demais métodos de validação podem ser acessados na documentação do jest, clicando aqui.
+
+É interessante que você verifique a lista completa, para ter uma ideia de todos os tipos que existem. Com isso, durante suas implementações, você pode lembrar de algum uso e consultar a documentação para entender mais detalhes.
+
+https://jestjs.io/pt-BR/docs/expect
+
+@@04
+Para saber mais: funções globais
+PRÓXIMA ATIVIDADE
+
+Nesta aula, usamos as funções describe e it com frequência. Porém, elas não são as únicas funções globais que existem no jest. Podemos usar algumas funções para controlar quais métodos de teste serão executados ou até executar funções antes/depois das funções de teste.
+Veja abaixo as funções globais mais comuns:
+
+describe('', () => {}): cria um contexto com uma descrição para todos os testes dentro da função;
+test('', () => {}): cria um teste com uma descrição que deve ser correspondida ao que o teste pretende testar.
+it('', () => {}): funciona exatamente igual ao test('', () => {}). É usado para começar a frase do teste, geralmente em inglês, onde a palavra it não precisa ser repetida. Exemplo: it('deve retornar verdadeiro') ou it('must return true');
+afterAll(() => {}): executa a função após todos os testes do seu contexto (arquivo ou describe) terminarem sua execução;
+beforeAll(() => {}): executa a função antes que todos os testes do seu contexto (arquivo ou describe) comecem sua execução;
+afterEach(() => {}): executa a função várias vezes, sempre que um teste do seu contexto (arquivo ou describe) terminarem sua execução;
+beforeEach(() => {}): executa a função várias vezes, sempre antes que um teste do seu contexto (arquivo ou describe) começar sua execução.
+Mais métodos globais podem ser acessados pela documentação, clicando neste link.
+
+Experimente também os métodos only e skip nos seus testes, mas lembre-se de que não é recomendado que você mantenha eles ao mandar os testes para produção. Exclua testes desnecessários e mantenha históricos em sistemas de versionamento, como o git.
+
+https://jestjs.io/pt-BR/docs/api
+
+@@05
+Configurando o Coverage
+
+[00:00] Agora já sabemos como fazer um teste unitário básico, já demos os primeiros passos nos testes unitários. Será que é possível saber quais arquivos que eu testei quais arquivos não testei, se tem alguma parte de um arquivo que eu não testei? Sim, é possível e isso é uma métrica, é o Coverage que chamamos, é a cobertura de testes.
+[00:24] Já conversamos sobre isso nos slides de fundamentos de testes e podemos aplicar aqui utilizando o Jest, mas vale tomar cuidado, não quer dizer que 100% de coverage seja 100% do nosso código, dos nossos requisitos testados.
+
+[00:42] Vamos configurar o coverage. Para isto eu vou novamente na documentação do Expo, estamos nessa página de novo e aqui no menu a direita podemos navegar diretamente para Code Coverage Reports.
+
+[01:05] Ele desceu aqui, fez um scroll e podemos configurar o coverage, basta copiar esse código aqui que está dentro dessa caixa de código e colar dentro do nosso "package.json". Vamos copiar a partir do collectCoverage, já sabemos que é dentro da propriedade Jest que vamos fazer as configurações do Jest no nosso projeto, vou copiar tudo o que está abaixo dos três pontinhos menos essa última chaves.
+
+[01:37] Vou colocar no "package.json" do projeto e abaixo do transformIgnorePatterns vou colocar uma vírgula e colocar aqui e indentar. Estamos fazendo: "collectCoverage": true,, vamos coletar o coverage, essa cobertura de testes, vamos coletar de qualquer arquivo .js ou .jsx e não vamos coletar de dentro, a ! é uma negação, não vamos coletar de dentro da pasta coverage que é uma pasta que ele gera mesmo do coverage, não vamos coletar de dentro do "node_modules", de "babel_config" ou de "jest.setup.js".
+
+[02:26] Basicamente vamos coletar de todos os arquivos JavaScript dentro do nosso projeto mesmo, dos nossos arquivos JavaScript.
+
+[02:34] Para coletar o coverage, como essa função já está true aqui, basta rodarmos um npm test e ele já vai coletar o coverage para nós. Vou rodar aqui no terminal npm test, validou e repare que apareceram aqui mais coisas depois da validação. A validação está aqui em cima, passou e ele nos trouxe uma tabela com todos os lugares que estamos testando e também os que passaram e os que não passaram.
+
+[03:03] Essa tabela pode ser um pouco difícil para entender, ele gera para nós uma coisa muito interessante que é um HTML na primeira coluna da tabela. Podemos abrir esse HTML no navegador para navegar e entender quais são os arquivos que estamos testando. Eu vou abrir a nossa pasta do projeto, pode ser no próprio VS Code mesmo, repare que ele criou a pasta "coverage" na raiz do nosso projeto.
+
+[03:30] Eu vou clicar com o botão direito e vou revelar in finder, “Reviel in Finder” e, dependendo do seu sistema operacional, pode ser revelar nas pastas, revelar no Explorer ou você pode navegar diretamente, abrir uma pasta e abrir essa pasta diretamente. Eu vou revelar essa pasta aqui no meu Finder.
+
+[03:51] A pasta “coverage” está aqui, como todos os arquivos do projeto. Vou entrar dentro da pasta “coverage”, vou entrar dentro da pasta "icov-report" e temos esse "index.html". Pode clicar com o botão direto, abrir com o Chrome. Caso ele não esteja abrindo com o Chrome, você abre com o Google Chrome ou com o navegador que você tiver. Eu vou abrir com o Chrome. Na verdade ele está abrindo em outra aba, mas eu vou fazer com que ele abra aqui, vou copiar a URL que apareceu aqui para mim.
+
+[04:25] Ele vai abrir dentro dos meus arquivos, abriu aqui e ele já nos mostra várias informações. Aqui em cima no começo ele fala All files, todos os arquivos, 2.09%, essa é porcentagem de covarage do nosso projeto, testamos 3 de 143, são 3 coisas de 143 coisas que poderíamos ter testado no nosso projeto. Podemos fazer um filtro aqui, pesquisar o que queremos, mas vamos dar uma olhada nessa tabela do que testamos. Repare que aqui o "leilaoTestes/src/negocio/formatadores", que é o que estávamos, está em 50%, testamos arquivos desse.
+
+[05:21] E se clicarmos nele conseguimos ver os dois arquivos o “lance.js” e o “moeda.js”. “moeda.js” está 100% testado, está tudo certo, está verde não está mostrando nada com problema, testamos as duas funções.
+
+[05:43] E basicamente tem três linhas de teste que ele mostra, por isso que aqui é 100% statements 3 de 3, 3 linhas que podíamos ter testado e testamos as três. Agora de abrirmos o “lance.js” vamos ver que não conseguimos testar tudo, não testamos nada, na verdade está 0%. Teria uma função, tem esse if também que temos que testar e o return. Faltaram essas coisas para testar e você pode testá-las nas atividades a seguir, no "Faça Como Eu Fiz".
+
+[06:20] Os "Faça Como Eu Fiz" vão instigar você a testar, a treinar esses conhecimentos que aprendemos na aula. Você vai dar uma olhada lá e vai tentar testar e fazer com o que esse lance aqui esteja em 100% também. Assim, conseguimos ver o coverage da nossa aplicação.
+
+[06:41] Ainda temos esse monte de coisas aqui no nosso teste e toda vez temos que ficar rodando npm test. No próximo vídeo vamos criar alguns scripts para facilitar a nossa vida na hora de rodar os testes.
+
+@@06
+Adicionando Scripts
+
+[00:00] Estamos rodando o comando npm test cada vez que queremos rodar os testes. Assim ele coleta o coverage e tudo isso que já fizemos. Seria bom criarmos scripts, como já comentamos, para agilizar esse processo, não queremos toda vez ficar coletando coverage e também não queremos ficar toda vez digitando npm test.
+[00:20] Para isto no "package.json", aqui em cima nos scripts, temos o script test que vai ser o script que vai rodar quando rodarmos o npm test. Vamos agilizar isso aqui e ao invés de mudar apenas o Jest vamos passar alguns parâmetros, o primeiro deles vai "test": "jest --watch".
+
+[00:56] Então vamos ficar assistindo. O nosso Jest vai ficar olhando os arquivos do nosso projeto e, quando salvarmos, ele vai rodar os testes novamente. Não precisamos ficar rodando toda vez o comando npm test, ele já vai rodar para nós, vou mostrar como é que funciona.
+
+[01:11] Quando estamos testando, nós também não queremos coletar o coverage todas as vezes. Nesse comando test eu vou passar mais um parâmetro que vai ser --coverage=false. Eu não quero coletar o coverage quando rodar simplesmente npm test.
+
+[01:32] E eu vou coletar o coverage apenas uma vez, não quero ficar dando um watch e ele ficar gerando coverage em todas as vezes. Vou colocar vírgula aqui e vou criar um novo script que vai ser: "testFinal":, o teste final mesmo, como se fosse o teste para a produção, o teste real que eu quero testar e não o teste enquanto estou fazendo os testes.
+
+[01:59] Vou abrir aqui aspas e vou escrever o comando que eu quero escrever e que é basicamente o Jest, o comando que estávamos chamando antes, "testFinal": "jest". Vou salvar aqui e vamos testar esse teste e o testFinal.
+
+[02:12] Vou abrir o terminal, "Terminal > New Terminal", e vamos rodar o npm test que é o que rodávamos antes. Repare que ele não rodou nada porque ele já verifica o que alteramos ou não, nesse caso acabamos de rodar e não alterou nada. Para rodar os testes todos novamente repare que ele tem aqui várias opções, watch usage. Como podemos usar esse comando? Podemos apertar "a" para rodar todos os testes. É isso que queremos.
+
+[02:57] Vamos apertar "a", só apertar "a" no teclado e ele roda todos os testes e ele passou os dois testes novamente. Para ver os comandos, para mostrar o que mais podemos ver, basta apertar "w" para mostrar mais. Ele mostra os comandos novamente. O "a" vai rodar tudo, o "f" vai rodar apenas os testes que falharam, o "o" vai rodar apenas os testes que tiveram mudança e assim por diante. Podemos fazer vários testes. Podemos pressionar "Enter" aqui para rodar algum teste específico e também podemos sair desse modo. O penúltimo comando é o "q", apertamos "q" e saímos do watch do teste, voltando para o terminal.
+
+[03:50] Agora vejamos o que o comando testFinal faz. Vamos rodar o npm, lembra que como o teste é um comando conhecido, um script conhecido não precisamos dar o run, mas no caso do "testFinal" precisamos: npm run testFinal. Ele não vai ficar olhando, o teste já terminou aqui e ele gerou o coverage para nós. Quando quisermos gerar o coverage rodamos testFinal.
+
+[04:22] Assim agilizamos o processo de testes da nossa aplicação. Na próxima aula vamos começar a entender melhor como funcionam os mocks dos testes, como podemos simular algumas coisas nos testes para que não peguemos as APIs reais, os bancos de dados reais, por exemplo, queremos camuflar isso, simular essas funções. Te vejo na próxima aula.
+
+@@07
+Testes de Unidade
+PRÓXIMA ATIVIDADE
+
+Vimos sobre os testes de unidade em aula. Agora, observe a função abaixo:
+function soma(num1, num2) {
+        return num1 + num2;
+}COPIAR CÓDIGO
+Gostaríamos de fazer um teste unidade com essa função.
+
+A partir dos aprendizados vistos, você pode identificar qual dos códigos abaixo corresponde a um teste de unidade?
+
+it('deve retornar 3 quando os parâmetros forem 1 e 2', () => {
+        if (soma(1,2) === 3)
+                return true;
+        return false;
+});
+ 
+Alternativa correta
+it(() => {
+        expect(soma(1,2)).toBe(3);
+});
+ 
+Alternativa correta
+test('deve retornar 3 quando os parâmetros forem 1 e 2', () => {
+        expect(soma(1,2)).toBe(3);
+});
+ 
+Resposta Correta! Podemos usar test ou it para criar um teste, passando sempre a descrição. Usando o expect, podemos testar diferentes ocasiões, por exemplo, o toBe para verificar igualdade.
+
+@@08
+Faça como eu fiz: mais testes de unidade
+PRÓXIMA ATIVIDADE
+
+Nesta aula, começamos a criar os testes de unidade.
+Agora, é hora de colocar a mão no código!
+
+Finalize os testes de unidade dos arquivos negocio/formatadores/lance.js e negocio/validadores/lance.js, tentando replicar os passos vistos durante os vídeos.
+
+Se precisar de ajuda, nos chame no fórum!
+
+É possível acessar o commit dos testes de unidade desses arquivos por meio deste link.
+
+https://github.com/alura-cursos/react-native-criando-testes-para-sua-aplicacao/tree/FCEFAula2
+
+@@09
+O que aprendemos?
+PRÓXIMA ATIVIDADE
+
+Nesta aula, estudamos os seguintes assuntos:
+Instalação da biblioteca jest;
+Configuração da biblioteca jest;
+Criação de um teste de unidade;
+Configuração de scripts para facilitar a execução dos testes no package.json.
+Nos vemos na próxima aula!
