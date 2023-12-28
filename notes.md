@@ -3,6 +3,8 @@
 ```
 npx expo init gatito
 npx expo start
+npm run test
+npm run api
 npm install webpack-dev-server
 npm cache clean -f
 npx expo install react-native-web@~0.19.6 react-dom@18.2.0 @expo/webpack-config
@@ -361,7 +363,6 @@ Criando Testes de Unidade
 
 @@03
 Para saber mais: lista de Expects
-PRÓXIMA ATIVIDADE
 
 Para checar se os valores nos testes são os esperados, usamos expects. Na biblioteca jest, existem várias formas de fazer isso, sendo as principais:
 toBe(): compara inteiros ou textos;
@@ -376,7 +377,6 @@ https://jestjs.io/pt-BR/docs/expect
 
 @@04
 Para saber mais: funções globais
-PRÓXIMA ATIVIDADE
 
 Nesta aula, usamos as funções describe e it com frequência. Porém, elas não são as únicas funções globais que existem no jest. Podemos usar algumas funções para controlar quais métodos de teste serão executados ou até executar funções antes/depois das funções de teste.
 Veja abaixo as funções globais mais comuns:
@@ -450,7 +450,6 @@ Adicionando Scripts
 
 @@07
 Testes de Unidade
-PRÓXIMA ATIVIDADE
 
 Vimos sobre os testes de unidade em aula. Agora, observe a função abaixo:
 function soma(num1, num2) {
@@ -480,7 +479,6 @@ Resposta Correta! Podemos usar test ou it para criar um teste, passando sempre a
 
 @@08
 Faça como eu fiz: mais testes de unidade
-PRÓXIMA ATIVIDADE
 
 Nesta aula, começamos a criar os testes de unidade.
 Agora, é hora de colocar a mão no código!
@@ -495,7 +493,6 @@ https://github.com/alura-cursos/react-native-criando-testes-para-sua-aplicacao/t
 
 @@09
 O que aprendemos?
-PRÓXIMA ATIVIDADE
 
 Nesta aula, estudamos os seguintes assuntos:
 Instalação da biblioteca jest;
@@ -503,3 +500,157 @@ Configuração da biblioteca jest;
 Criação de um teste de unidade;
 Configuração de scripts para facilitar a execução dos testes no package.json.
 Nos vemos na próxima aula!
+
+#### 28/12/2023
+
+@03-Mocks e Chamadas
+
+@@01
+Projeto da aula anterior
+
+Para acessar o projeto com os códigos realizados na aula anterior, caso você esteja começando a partir desta aula ou não tenha acompanhado alguma parte, veja a branch por meio deste link.
+
+@@02
+Mockando um arquivo
+
+[00:00] Para essa aula vamos testar o repositório de leilões, que é esse arquivo que está dentro de "src > repositorio > leilao.js". Repositório é um tipo de padrão de projeto que podemos utilizar que vem do inglês repository. Também testaremos o obtemLeiloes, o primeiro método do nosso repositório de leilão. Vai lá na API e dar um get no barra leilões para pegar todos os leilões, ele vai retornar uma lista de leilões.
+[00:33] Caso dê algum erro nessa requisição, ele vai retornar uma lista vazia, simplesmente. Ele estava fazendo um try cat aqui. E o método obtemLeilao, passando o Id, é bem semelhante. Ele vai fazer um get /leiloes/${id}e vai retornar o leilão, caso contrário ele retorna um objeto vazio.
+
+[00:55] Vamos testar essa função de obtemLeilao. Para isso, primeiro na nossa pasta de "tests" vamos criar outra pasta chamada "repositorio" para fazer o mesmo caminho que tem dentro do "src", "repositorio" e dentro dele vamos ter o nosso arquivo "leilao.test.js". Agora aqui dentro fazemos o import da função que queremos testar: import { obtemLeiloes } from '../../src/repositorio/leilao";.
+
+[01:42] Vamos fazer os describe do arquivo: describe('repositorio/leilao', () => { }); e aqui dentro vamos criar o segundo describe da nossa função: describe('obtemLeiloes', () => { });. Agora estamos fazendo testes dentro da função obtemLeiloes. Vamos testar com it. Isso é o método de teste que deve retornar uma lista de leilões quando chamamos o obtemLeiloes: it('deve retornar uma lista de leilões', () => { });. Nessa descrição eu posso colocar acento que não tem nenhum problema.
+
+[02:51] Aqui vamos criar um constante const leiloes = await obtemLeiloes();, estamos armazenando os leilões em uma variável e como utilizamos o await precisamos usar o async no começo da função. Nessa função do it vamos colocar um async antes da função, it('deve retornar uma lista de Leilões', async () => { const leiloes = await obtemLeiloes(); });. Vamos dar um console.log(leiloes); nos leilões e ver o que está aparecendo para nós. Vou salvar e vou rodar aqui npm test no terminal.
+
+[03:29] Rodamos aqui o npm test, passou um teste que tinha. Como esse é o único que ele está alterando é o único que ele está chamando, se rodarmos todos vai pegar os outros testes que já fizemos também. No console.log, deu um array vazio, pode ser que no seu caso apareçam os leilões de fato, porque eu não estou rodando a API aqui na minha máquina. Eu vou abrir um novo terminal e vou dar o npm rum api para rodar ela na máquina, na porta 3000. Se você já estiver rodando não precisa rodar de novo.
+
+[04:05] Agora vou fazer o teste e passar de novo, vou apertar "a" aqui, já rodou mais testes. Repare aqui que no log está vindo os leilões e aqui no log da API também ele deu o GET "/leiloes". Só que isso pode não ser tão interessante, porque, dependendo se API está online ou offline, vai retornar uma coisa diferente. Como é que vamos testar isso?
+
+[04:30] Pode haver casos que podem ser interessantes, mas no nosso caso não queremos fazer um teste de integração, aquele teste que testa o serviço externo mesmo, queremos fazer um teste de unidade que vai testar apenas o funcionamento do obtemLeiloes, sem ver se a API está online, se o banco de dados está funcionando ou qualquer outro serviço externo.
+
+[04:53] Como podemos fazer para testar esse método obtemLeiloes se ele tem acesso a uma API? Também serve para qualquer outro caso que queiramos testar sem utilizar uma função real. Para isto podemos fazer uma simulação da nossa API. Temos o apiLeiloes que vem de servicos/apiLeiloes, podemos fazer com que esse arquivo seja mockado, seja simulado, e não seja chamado o arquivo real mesmo.
+
+[05:28] Para fazer isso aqui no nosso arquivo de testes “leilao.test.js”, vamos escrever, antes de todos os describes, abaixo do import, um jest.mock(). É uma função do Jest. Estou chamando o Jest em uma função chamada mock e vou passar entre "" o caminho do arquivo que eu quero mockar. O caminho do arquivo é ../../, volta duas pastas e aí entramos dentro de "src". É o mesmo caminho que está no import do “leilao.js”. Queremos mockar a API de leilões do serviço da API e não o arquivo do repositório. Vai ser jest.mock('../../src/servicos/apiLeiloes');.
+
+[06:42] Aqui no nosso arquivo original, quando o “leilao.js” chamar a apiLeiloes.get, ele não vai chamar esse servicos/apiLeiloes. Não é para receber nenhum log diferente na nossa API. Não vamos chamá-lo, e sim uma função mockada. Vamos testar para ver o que ele retorna. Vou mandar rodar novamente aqui no terminal do teste, vou apertar "a" e temos uma função vazia.
+
+[07:14] Pode ver que não foi chamado novamente na nossa API, ele está sendo mockado, está sendo substituído por alguma outra coisa, porém ainda não descrevemos o que exatamente queremos que retorne a função get da API leilões. É isso que vamos fazer no próximo vídeo, vamos descrever o que queremos que volte dessa função.
+
+@@03
+Customizando a implementação
+
+[00:00] Continuando o nosso teste do repositório de leilão quando mockamos a API ele mocka as funções, mas não declaramos o que exatamente queremos que a função retorne. Para que retornemos alguma coisa há várias formas de fazer, podemos colocar uma vírgula aqui, por exemplo, nesse jest.mock o primeiro parâmetro é a string, a URL onde damos o caminho do arquivo que queremos mockar, podemos passar como segundo parâmetro uma função que vai retornar o que exatamente vamos ter dentro da API leilões.
+[00:39] Porém não vamos fazer dessa forma, é uma forma mais fácil de fazer. Caso você queira mockar uma coisa mais simples, dá para fazer dessa forma. Não vamos fazer dessa forma porque cada API, cada método desse aqui, vai retornar coisas diferentes. Se fizermos um get no leilões vai retornar uma lista de leilões, se fizermos um get no leiloes/${id} vai retornar um objeto de leilões, queremos fazer mocks diferentes para cada teste que formos fazer.
+
+[01:12] Ao invés de fazermos isso, vou apagar e deixar apenas jest.mock. Vamos fazer de uma forma um pouco diferente. Primeiro, vamos definir o que são os nossos leilões, vou fazer uma constante aqui abaixo do mock, cons mockLeiloes = [ igual a uma [] de leilões. Vai ser uma [] com um único leilão só para testarmos mesmo. O leilão será um objeto, abre e fecha chaves id: 1, vai ter também um nome: 'Leilão', descricao: 'Descrição do leilão' } ];.
+
+[02:05] Criamos um objeto, o mockLeiloes, que vai ser uma representação da nossa lista de leilões que queremos retornar. Vamos fazer agora um mock da função de requisição, vamos descrever como queremos que ele seja. Ainda não estamos definindo que ela vai ser um mock, mas queremos descrever como queremos que ela seja.
+
+[02:24] Vou criar uma constante aqui que vai ser uma função. Mocka requisição igual e vamos receber um parâmetro para podermos modificar o que vamos retornar. No caso, se quisermos testar o retorno dos leilões vamos retornar uma lista de leilões, se quisermos testar o retorno de um leilão específico, vamos retornar um único leilão. Vamos fazer com que essa requisição retorne qualquer coisa que queiramos. Vou colocar aqui uma variável chamada retorno e vamos passar o retorno do nosso mock por parâmetro: const mockRequisicao = (retorno) => { };.
+
+[03:02] Dentro da função, vamos retornar e, para simular de fato uma função, ela retorna uma promise. Demora um tempo para fazer a requisição, então vamos utilizar um set time out e criar uma promise para essa requisição. Para criar uma promise, primeiro damos um return new Promise();. Depois, nossa promise vai ser uma função aqui dentro, vai ser uma função e podemos definir um parâmetro. Pode ter o parâmetro resolve, que é o primeiro, e podemos ter o parâmetro reject, mas no nosso caso não vamos ter, vamos sempre ter o sucesso: return new Promise((resolve) => {});.
+
+[03:49] Temos o parâmetro resolve e agora, dentro da função da promise, vamos fazer um set time out, setTimeout() =>, a função do time out para simular o tempo de demora da requisição, e o segundo parâmetro depois da função vai ser os milissegundos, vou colocar 200 milissegundos que vai demorar a requisição. Então vamos utilizar essa função resolve para retornar a promise o que vai acontecer, o que vai retornar quando a promise terminar, quando o set time out rodar.
+
+[04:30] Vamos retornar um objeto, que vai ter dentro data, porque repare que quando fazemos uma requisição no “leilao.js”, quando damos um get, nós sempre pegamos a resposta por data. Data é uma propriedade do Axios mesmo, da requisição que podemos pegar um corpo de retorno da nossa requisição, por isso que temos esse data;. E o retorno em si: resolve({ data: retorno }) }, 200); }); }. Vamos resolver um objeto que tem data dentro, dois pontos o retorno que passamos por parâmetro.
+
+[05:07] Isso quer dizer que quando chamarmos essa função, ela vai retornar, depois de 200 milissegundos, o objeto data com a mesma coisa que passamos para ela. Já fizemos o nosso mock de requisição, vamos fazer com que esse mock seja aplicado de fato na nossa API. Primeiro precisamos importar o arquivo de API.
+
+[05:32] Aqui em cima eu vou fazer um import apiLeiloes from '../../src/servicos/apiLeiloes'; Agora podemos pegar as referências mockadas das funções que existem aqui, que o mock fez para nós, e fazer uma implementação diferente.
+
+[06:01] Para isto viremos aqui no nosso teste mesmo, no 'deve retornar uma lista de leilões', no it. Dentro eu vou criar. Pela primeira vez eu vou mockar a função de fato, vou definir que o get do apiLeiloes vai ser esse mock que acabamos de criar.
+
+[06:22] Para fazer isso vamos pegar o objeto que acabamos de importar que é o apiLeiloes.get, que é a função que queremos mockar lá dentro. Como estamos mockando aqui, temos várias funções de mock que podemos fazer com esse mock. Uma delas é mockImplementation, ele mocka a implementação do nosso método. Queremos mockar a implementação do get, mockImplementation() é uma função e passamos dentro dos () como queremos que essa função seja.
+
+[07:04] Queremos que seja novamente uma função e aqui vamos usar o mockRequisicao que criamos. A requisição recebe alguma coisa como parâmetro para que possamos retornar. A requisição vai receber o mock de leilões que criamos. Dentro do mockRequisicao, vamos passar o mockLeiloes, então apiLeiloes.get.mockImplementation(() => mockRequisicao(mockLeiloes));.
+
+[07:32] Vamos ver o que estamos fazendo aqui. Estamos pegando o método get da nossa API, mockando a implementação dele para ele retornar uma função que retorne essa função que criamos, que dá um time out, retornando sempre o mockLeiloes. Se quisermos retornar alguma outra coisa na requisição, podemos só mudar esse parâmetro, por isso que fizemos dessa forma, e não colocando vírgula aqui no mock.
+
+[08:01] Vamos testar, vamos salvar e rodar o npm test. Se você já estiver rodando basta só apertar a tecla "a" para ele rodar de novo o teste. E o console.log foi o próprio leilão que tínhamos mockado, estamos recebendo esse leilão como mock. Vamos também fazer um expect para esperarmos que o leilões seja, de fato, a lista de leilões, ao invés de dar um console.log, vamos fazer isso.
+
+[08:36] Aqui no lugar do console.log vou fazer um expect(leiloes)., e nesse caso não vai ser um toBe, porque ele é um objeto, e para objetos utilizamos o toEqual. E leilões vai ser igual ao mockLeiloes que criamos, então expect(leiloes).toEqual(mockLeiloes);. Vou salvar, ele vai rodar de novo e pronto, já temos o nosso arquivo de teste passando.
+
+[09:15] Vamos fazer um segundo teste agora para utilizarmos esse mockRequisicao. Vamos fazer um teste, caso a implementação do get dê algum erro, caso a API esteja com falha o nosso software. Não pode travar porque a API está offline. Vamos copiar esse teste 'deve retornar uma lista de leilões', vou colar aqui, duplicar o teste e vou renomear: it('deve retornar uma lista vazia quando a requisição falhar', async () =>. Essa vai ser a descrição.
+
+[09:55] Agora vamos ter a mockRequisicao, obtemLeiloes, toEqual a uma lista vazia. O expect vai ser uma lista vazia, expect(leiloes).toEqual([]);. E agora a implementação aqui não vai ser mockRequisicao. Precisamos criar um outro mock de requisição com erro. Vou copiar essa função do mock de requisição aqui em cima e vou renomear a segunda função para const mockRequisicaoErro = () => [. Não precisamos de um parâmetro para receber, porque vamos retornar sempre erro.
+
+[10:28] Agora vamos utilizar aquele segundo parâmetro da promise, não vamos mais utilizar o resolve vamos utilizar o reject, return new Promise((_, reject) => {. Aqui onde está o resolve vou colocar um underline porque não vamos utilizá-lo e ele não precisa ser salvo em memória. E ao invés do resolve, dentro do set time out eu vou simplesmente dar um reject, reject();.
+
+[10:54] Ficou assim: temos o mock de requisição, eu o dupliquei para baixo para mockRequisicaoErro. É uma função que vai retornar uma promise, vai pegar o reject depois de 200 milissegundos e vai retornar apenas reject, vai chamar o método de reject.
+
+[11:12] Agora podemos utilizar esse mockRequisicaoErro para mockar a requisição. Vou apagar e, dentro do nosso segundo teste, no mockImplementation, vai retornar uma função que vai ser a mockRequisicaoErro, sem nenhum parâmetro, não precisamos desse parâmetro: apiLeiloes.get.mockImplementatios(() => mockRequisicaoErro());. Vamos salvar e ver o que acontece. Os dois teste passaram, agora quando temos uma requisição com erro ele retorna o array vazio aqui no leilões.
+
+[11:42] Será que retornar alguma coisa diferente é a única coisa que podemos fazer com esses mocks? No próximo vídeo vamos descobrir um pouco mais sobre o que podemos fazer com mocks.
+
+@@04
+Para saber mais: funções de Mock
+
+Nesta aula, aprendemos a simular funções para que os dados originais não sejam afetados. Usamos alguns métodos do jest para trabalhar com mocks, e abaixo estão os mais utilizados:
+mockClear(): Limpa todos os registros das chamadas das funções;
+mockReset(): Faz tudo o que mockClear() faz, e também limpa as implementações e valores a serem retornados, voltando a ser como quando criamos uma função jest.fn();
+mockRestore(): Faz tudo o que mockClear() faz, e também volta a implementação de método original;
+mockImplementation(fn): Seta uma nova implementação para a função mockada. Há um atalho para esse método: jest.fn(implementation);
+mockReturnValue(value): Seta um valor fixo a ser retornado.
+Você pode verificar mais funções neste link da documentação.
+
+https://jestjs.io/pt-BR/docs/mock-function-api
+
+@@05
+Verificando Chamadas
+
+[00:00] Agora vamos ver o que mais podemos fazer com os mocks além de mockar a implementação. Podemos verificar se tal método foi chamado, quantas vezes e com quais parâmetros ele foi chamado, por exemplo, estamos chamando o obtemLeiloesaqui no nosso teste, no leilao.test.js. Esse obtemLeiloes chama o método get passando o parâmetro /leiloes. Podemos verificar se ele chamou esse método get e se ele chamou esse método get passando o parâmetro, uma string /leiloes.
+[00:38] Para fazer isso basta, nesse primeiro teste onde temos const leiloes = await obtemLeiloes();, depois do expect, começar com outros expects, que vão ser expects de validação para verificar as chamadas, verificar se os métodos foram chamados em tal parâmetro.
+
+[01:09] Vamos criar um expect(apiLeiloes.get), que esperamos que o método get toHaveBeen, tenha sido called, chamado, with, com. Que o método apiLeiloes.get tenha sido chamado com e passar o parâmetro que eu espero que ele tenha sido chamado, que é expect(apiLeiloes.get).toHaveBeenCalledWith('/leiloes'); Vamos salvar e testar.
+
+[01:55] Vou rodar o teste, npm test, e o teste passou, ele foi chamado com leilões. Ainda podemos verificar quantas vezes ele foi chamado. Na linha debaixo colocamos: expect(apiLeiloes.get).toHaveBeenCalledTimes(1);, eu quero que esse método tenha sido chamado apenas uma vez. Vamos salvar, rodamos os testes novamente e novamente passaram.
+
+[02:36] Vamos fazer esses mesmos testes para o teste de baixo, para o testo do erro. Quando temos uma requisição com erro esperamos que dê essa falha aqui, vou colar abaixo esses mesmos expects de to have been called e to have been called times para vermos se está correto, se foi chamado com /leiloes e uma vez. Esperamos que ele deve ter sido chamado, deve passar esse teste, porém quando salvamos temos uma falha.
+
+[03:17] Repare que a falha é nessa toHaveBeenCalledTimes, quantas vez ele foi chamado. Esperávamos que ele tivesse sido chamado 1 vez, porém ele foi chamado 2 vezes. Por que duas vezes? Aqui no nosso código será que estamos chamando o get, fazendo duas vezes a requisição? Na verdade não, o que acontece é que esse toHaveBeenCalled, essa informação da função é global para todo o nosso teste.
+
+[03:48] Já fizemos um teste, e nesse teste foi chamado uma vez, e na segunda vez fazemos outro teste e chamamos novamente, foram chamados duas vezes. Podemos utilizar uma propriedade do Jest para limpar esse mock, para limpar esse número de vezes que a função foi chamada.
+
+[04:09] Para fazer isso, aqui no nosso describe geral, entre os dois describes, eu vou chamar uma função, que é a beforeEach. Essa uma função, se você já viu as funções globais do Jest, você pode ter observado ela, é uma função que vai rodar sempre antes de cada teste. Antes de cada teste, vamos passar uma função aqui dentro para rodar alguma coisa, para executar alguma coisa, que vai ser limpar esse mock para que ele resete a contagem de requisições.
+
+[04:50] beforeEach(() => { função. Dentro dela, vamos ter apiLeiloes.get.mockClear(); que é uma outra função do mock. Vamos ter também um "Saiba Mais" com várias funções do mock para você dar uma olhada. Essa função mockClear vai limpar apenas a requisição, ela não vai limpar a implementação em si.
+
+[05:15] Vou salvar aqui e agora sim, tivemos sucesso. É assim que conseguimos. Sempre devemos limpar quando vamos testar a mesma coisa em vários testes diferentes, porque senão podemos ter esse problema do número de requisições, do número de chamadas, ficar sujo ou mesmo da chamada que estamos esperando pegar a chamada anterior, e não a chamada do teste que queremos mesmo. Podemos usar esse be for each.
+
+[05:43] Também tem o be fore all, tem o after each que é depois de cada, after all que é depois de todos. Têm vários métodos que podemos utilizar para fazer essa limpeza do nosso mock.
+
+[06:02] Não esqueça de dar uma olhada no "Faça Como Eu Fiz" para concluirmos mais testes aqui nesse arquivo, para você treinar esses conceitos que aprendemos de mocks. Te vejo na próxima aula.
+
+@@06
+Para saber mais: outra forma de mockar
+
+Além do mock do arquivo ou módulo completo, podemos também mockar um único método. Veja o exemplo abaixo de como podemos mockar o método useEffect do próprio React Native:
+import React from 'react';
+
+test('mock de um método', () => {
+    jest.spyOn(React, 'useEffect').mockImplementation((f) => f());
+});COPIAR CÓDIGO
+Neste exemplo, o useEffect mockado irá executar a função (f) logo ao ser chamado.
+
+Você pode acessar a documentação do spyOn neste link.
+
+https://jestjs.io/pt-BR/docs/jest-object#jestspyonobject-methodname
+
+@@07
+Faça como eu fiz: mais testes com mocks
+
+Nesta aula, adicionamos mocks para simular funções nos nossos testes. Para reforçar os conceitos vistos e seu aprendizado, você pode finalizar os testes, usando os mocks dos arquivos repositorio/lance.js e respositorio/leilao.js.
+
+O objetivo desta atividade é que você criasse os mocks nos arquivos repositorio/lance.js e respositorio/leilao.js, os quais não vimos em aula. No entanto, a lógica de implementação é bastante semelhante e não apresenta grandes dificuldades.
+Acesse o commit dos testes de unidade desses arquivos por meio deste link.
+
+https://github.com/alura-cursos/react-native-criando-testes-para-sua-aplicacao/tree/FCEFAula3
+
+@@08
+O que aprendemos?
+
+Nesta aula, aprendemos a:
+Aplicar um mock a um arquivo, prevenindo a execução do comportamento original;
+Simular o comportamento das funções do arquivo mockado;
+Verificar se as funções mockadas foram chamadas, considerando os parâmetros e a quantidade de chamadas;
+Criar um método para limpar os mocks.
