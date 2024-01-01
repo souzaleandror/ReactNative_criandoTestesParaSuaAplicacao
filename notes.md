@@ -654,3 +654,296 @@ Aplicar um mock a um arquivo, prevenindo a execução do comportamento original;
 Simular o comportamento das funções do arquivo mockado;
 Verificar se as funções mockadas foram chamadas, considerando os parâmetros e a quantidade de chamadas;
 Criar um método para limpar os mocks.
+
+#### 29/12/2023
+
+@04-Testes de Hook e Componente
+
+@@01
+Projeto da aula anterior
+
+Para acessar o projeto com os códigos realizados na aula anterior, caso você esteja começando a partir desta aula ou não tenha acompanhado alguma parte, veja a branch por meio deste link.
+
+https://github.com/alura-cursos/react-native-criando-testes-para-sua-aplicacao/tree/Aula3
+
+@@02
+Testing Library
+
+[00:00] Vamos focar nessa aula começando com os testes de hook. Vamos ver qual hook que podemos testar. Aqui dentro de “src” tem uma pasta "hooks" e vamos testar esse hook em "useListaLeiloes", que é o hook que utiliza aquele método que testamos antes de obtemLeiloes(). Como que poderíamos fazer para testar? Já no começo, quando olhamos para a caixa, já imagina que vai acontecer um erro e que vai mesmo, porque o hooks só podem ser chamados dentro de componentes.
+[00:33] Esse useState aqui já vai trazer um erro para nós, então não podemos simplesmente chamar esse hook normalmente como se fosse uma função. Tem algumas alternativas para que possamos fazer teste de hook. A primeira alternativa que eu vou dar aqui para vocês é sobre mockar o useState. Já vimos em um "Saiba Mais" de outras formas de mockar como podemos mockar propriedades do React Native mesmo, como o useState.
+
+[01:02] Mas o problema é que precisamos refazer a simulação de como que essas funções irão funcionar, porque precisamos que o useState funcione para que o seteLeiloes funcione, para conseguirmos testar de fato isso. Pode ser que fique um pouco complicado de implementarmos todas as funções que precisamos de outra forma, mocando e implementando elas.
+
+[01:29] Outra forma de testar hooks pode ser criando um componente para testarmos. Como vamos ver nos próximos vídeos, podemos testar componentes mesmo do React Native. podemos testá-los renderizando memória, já ouvimos um pouco falar sobre isso, mas não é legal criarmos um componente só para testarmos um hook, porque temos várias formas de atualizar esse* hook*.
+
+[01:54] Por exemplo, podemos chamar função aqui atualizaLeiloes, para atualizar, podemos recarregar a tela, podemos carregar pela primeira vez. Então existem várias formas de que isso seja atualizado.
+
+[02:05] Vamos ter que gerenciar tudo isso também. Porque não é interessante criarmos um componente só para fazer um teste de um hook. O que podemos fazer? A alternativa que vamos fazer é usar uma biblioteca de testes de hook, que é a Test Library react Hooks. Ela tem dependências com outras bibliotecas também e vamos ter que instalar todas elas juntas, e essas outras também vão nos ajudar a fazer os testes das próximas aulas.
+
+[02:37] Como vamos instalar essa biblioteca? Eu vou pegar o terminal aqui e vou expandi-lo bem grande para vermos. No nosso terminal, eu vou dar uma npm install, e a biblioteca, vou instalá-la lá nas dependências de desenvolvimento. Então vou colocar aqui -- save-dev. Para instalá-la, poderíamos passar simplesmente o nome dela, que é @test-libary, mas precisamos pegar a versão certa compatível com o react-test-renderer, que é aquela biblioteca que transforma o nosso componente naquele arquivo JavaScript, para conseguirmos renderizar em memória.
+
+[03:26] Precisamos que tudo isso se encaixe muito certo. O primeiro passo que precisamos é saber qual que é a versão do React que estamos utilizando, então eu vou vir aqui no "package.json" e vou rolar aqui nas dependências. Temos aqui a dependência do "react": "17.0.1", então essa versão "17.0.1" é a versão do react-test-renderer que vamos precisar instalar. Precisamos fazer tudo isso em um mesmo comando para que todas as bibliotecas sejam instaladas nas versões certas.
+
+[04:06] Começando. Estamos rodando npm install – save-dev react-test-renderer, e essa biblioteca que precisamos especificar a versão, então npm install – save-dev react-test-renderer@17.0.1. Agora podemos chamar as outras bibliotecas que elas vão se adaptar as versões corretas. Então fazemos um espaço, tem que ser tudo na mesma linha, a biblioteca test library, mesmo do React Native, que é a que vamos utilizar para renderizar e nos ajudar ali as chamadas, preencher campos e apertar botões, essas coisas. Vamos usá-la e ela também é uma dependência da biblioteca de testes para hooks.
+
+[04:55] Essa biblioteca começa com @testing-libary/react-native. A próxima, espaço, agora é a última delas, é a biblioteca de hooks mesmo, então vamos chamá-la com @testing-libary. Elas são irmãs digamos assim, @testing-libary/react-hooks. Ok. Deixa só conferir aqui, acho que estar tudo certo, vou dar uma "Enter" para ver se instala. Esse processo pode demorar um pouco, para baixar as bibliotecas.
+
+[05:38] Vamos instalar aqui. Perfeito. Instalamos todas as bibliotecas. Podíamos ter instalado na mão os valores aqui, as versões certas. Se você quiser instalar separado, você pode pegar essas versões e instalar na mão, mas para você pegar as versões mais recentes, independente da sua versão do Expo, da sua versão do React, você pode fazer essa técnica aqui, de passar o react-test-renderer com a versão certa do React, e as outras bibliotecas vão se adaptar a isso.
+
+[06:09] Já instalamos as bibliotecas, então vamos testar a hook com a biblioteca test-library-react-hooks.
+
+@@03
+Testando um Hook
+
+[00:00] Agora vamos testar de fato o nosso hook useListaLeiloes. Para fazer isso, iremos para nossa pasta de testes, criaremos outra pasta chamada "hooks", que é o mesmo caminho da original, e dentro dela teremos "useListaLeiloes.test.js". Já temos o nosso arquivo de teste aqui.
+[00:25] Primeiro vamos importar o no nosso hook, useListaLeiloes, import useListaLeiloes from '../../src/hooks/useListaLeiloes. Vamos fazer um describe do arquivo que estamos testando, então describe('hooks/useListaLeiloes', () =>). Não precisamos fazer um outro describe para função, porque essa é a única função que nosso arquivo tem, ele só utilizou o hook useListaLeiloes.
+
+[01:07] Agora já podemos começar fazendo o nosso teste, então it(), vai fazer o quê? O hook deve retornar uma lista de leilões e ele também deve retornar aquele segundo parâmetro que é um parâmetro para atualizar a lista, então it('deve retornar uma lista de leiloes e uma função para atualizar', () =>), e aqui estar a nossa função de fato.
+
+[01:46] Chamamos aqui useListaLeiloes. Lembra que eu falei que não poderíamos chamá-lo diretamente? Eu não demonstrei isso aqui, mas podemos simplesmente chamar, vou simplesmente chamar o useListaLeiloes, vou dar um npm test aqui. Já temos um erro, informando que precisa conter pelo menos um teste. Não está salvo, vamos salvar. Aqui estar falando: "invalid hook call", então é "chamada de hook inválida". Os hooks devem ser chamados apenas dentro do corpo de componentes de função.
+
+[02:22] Esse é o erro que aconteceu, e instalamos a biblioteca para não ter esse erro aqui. Como que vamos fazer para chamar o hook useListaLeiloes usando a biblioteca? Aqui em cima, como primeiro import, antes desse, eu vou fazer um import { renderHook } from e vamos adicionar a biblioteca test-library que instalamos, que é @testing-library/react-hooks. Ok.
+
+[03:07] Agora vamos utilizar o renderHook aqui na chamada do teste, então onde antes estávamos chamando simplesmente useListaLeiloes, vamos chamar renderHook( () => useListaLeiloes() ). Agora, se salvarmos, continuamos tendo erros aqui. Isso é bem natural. Mas não é o mesmo erro que tínhamos antes. O que é esse erro que estamos tendo agora? Qual é o problema?
+
+[03:46] Ele está falando aqui no erro que atualizações por componente "TestComponent", que esse "TestComponent" é um componente dentro da biblioteca test library de react-hooks. Ele está falando que algum updates não está sendo feito dentro do método act. Só que temos uma coisa: esse método renderHook já usa o método act por trás dos panos. O problema é que estamos chamando o useListaLeiloes, e ele vai ser criado contendo o useEffect, que atualiza ListaLeiloes.
+
+[04:30] Esse atualizaListaLeiloes vai obter informações da API, vai demorar um tempo, e ele vai setar aqui os leilões. Isso aqui não ser síncrono, isso é assíncrono, vai ser em paralelo do que estar sendo executado. Vamos chamar isso daqui. Vamos iniciar esse processo. Porém, esse processo não está terminando dentro desse teste, então precisamos esperar que esse processo termine para podermos fazer alguma coisa, não podemos simplesmente terminar o teste antes que todas as funções sejam chamadas.
+
+[05:01] O que vamos fazer é capturar desse renderHook. Vou criar uma constante para armazenar esse renderHook, as informações, só que eu vou desconstruir aqui, então const { } = renderHook( () => useListaLeiloes() ). Quais são as variáveis que eu quero pegar do renderHook? Primeiro podemos colocar a waitForNextUpdate, então esse método vai esperar até o próximo update e é isso que queremos.
+
+[05:34] Vou copiar esse nome do método e vou fazer na linha de baixo um awaitForNextUpdate, chamando essa função. Como estamos usando o await aqui, preciso colocar um async no começo da função do nosso teste. Vamos salvar agora e pronto, não temos mais o erro. Passou aqui porque não deu nenhum erro, mas não tem nada acontecendo. Só estamos renderizando hooks, mas não estamos nem vendo o que estar acontecendo.
+
+[06:03] Até podemos rodar nossa API para ver que ele está sendo chamado e isso vai acontecer mesmo, ele vai ser chamado, a nossa API, porque o useListaLeiloes usa o obtemLeiloes. Nós mocamos a API, só que mockamos em outro arquivo de teste. O mock que está lá naquele arquivo não vai ser passado para esse nosso novo arquivo de teste de hook, então precisamos mockar de novo. O que vamos mockar?
+
+[06:27] Diferente do que fizemos antes, quando tínhamos mockado a API, vamos mockar diretamente o obtemLeiloes, o repositório de leilão. Vamos fazer isso, vamos mockar o repositório de leilão. Aqui embaixo dos import, vou chamar jest.mock('../../'src/repositorio/leilao'). Pronto, agora já temos o nosso repositório mockado aqui. Vamos ver o que estamos recebendo.
+
+[07:10] Para vermos o que estamos recebendo, nessa constante podemos desconstruir mais um parâmetro. Antes do waitForNextUpdate vou chamar aqui { result, waitForNextUpdate }. Então, do renderHook, obtivemos esse result também. Vamos dar uma olhada no que tem nesse result, então console.log(result). E eu vou fazer um console.log(result) antes do waitForNextUpdate também, então vão ser dois console.log.
+
+[07:39] Além disso, aqui no result, precisamos também fazer console.log(result.current[0]) para pegarmos o valor exato do resultado nesse momento em que estamos acessando o resultado. Então para pegarmos o que o hook está retornando, é assim que pegamos. Vou salvar e vamos ter aqui o console, primeiro ele retorna um array vazio e segundo ele retorna um undefined. Vamos ver aqui porque ele está retornando undefined.
+
+[08:13] Ok. Está totalmente correto. Por que, o que estar acontecendo aqui? Primeiro, estamos dando o console.log antes de chamarmos de fato o que estar acontecendo aqui no useEffect, antes de atualizarmos a lista de leilões. O primeiro retorno dele aqui é o leiloes, por isso que estávamos dando um 0 aqui, estamos pegando result.current[0], que é a primeira posição do array que ele está retornando, que é a variável leiloes. E a variável leiloes começo do começo como um array vazio e esperamos pelo próximo update.
+
+[08:54] E depois esse obtemLeiloes retorna e seta nos leilões undefined, por quê? Porque mockamos o nosso repositório de leilão, mas não identificamos o que queremos que retorne desse repositório de leilão. O que eu quero que retorne vai ser um mock de leilões. Até podemos copiar do outro teste, então vou pegar o teste de repositório leilão e aqui em cima vou copiar o mockLeiloes e vou colar aqui para também termos um mockLeiloes aqui.
+
+[09:26] É legal que todas essas constantes fiquem exatamente no arquivo que estamos testando para que não se confunda, não misture o mesmo mock de leilões para vários arquivos. Nesse caso, vamos simplesmente copiar e colar mesmo e temos agora um mock de leilões com array de um leilão com id 1, nome "leilão", descrição "descrição do leilão".
+
+[09:52] Agora vamos mockar o método do nosso repositório de leilão. Para mockarmos, lembra que precisamos importá-lo? Vamos importar, import { obtemLeiloes }, que é a função aqui que o nosso hook está chamando, import {obtemLeiloes} from '../../src/repositório/leilao'. Agora, antes de cada chamada no nosso teste vamos mockar o retorno. Não precisamos fazer aquela coisa complexa, de requisição. Por quê? Isso já está feito lá.
+
+[10:39] Vamos fazer o seguinte: vamos chamar o obtemLeiloes.mockImplementation(), então vamos mockar a implementação do obtemLeiloes para que ela seja uma função que simplesmente retorne o mock de leilões: obtemLeiloes.mockImplementation( () => mopckLeiloes). Pronto, agora já estamos mockando a implementação do obtemLeiloes. Vou salvar e, rodando o teste de novo, já temos aqui um resultado diferente.
+
+[11:07] O primeiro console.log retorna um array vazio e o segundo console.log retorna o array do mock de leilões que criamos. Já estamos pegando aqui o array vazio e depois o array com mock. Até podemos fazer um expect para isso, então no console.log vou chamar expect(result.currente[0].toEqual().
+
+[11:38] Espero que, quando eu chamo o hook, a primeira coisa que ele faz é me retornar um array vazio e, depois que passar pelo useEffect e fazer uma atualização, eu espero que ele me retorne, como primeira posição no array de leilões, o mock dos leilões, expect(result.currente[0].toEqual(mockLeiloes).
+
+[11:55] Isso já é um teste que estamos fazendo. Vou salvar aqui, dar um "Enter". Para termos um espaço melhor, não tem mais console.log. Está passando os nossos testes. Legal. Agora podemos fazer o seguinte: podemos mudar o mock aqui que fizemos do obtemLeiloes e atualizá-lo para adicionar mais um leilão na nossa lista. Como podemos fazer isso? Eu vou copiar esse mockLeiloes, essa constante, vou colar aqui embaixo e essa constante de mockLeiloes vai ter um leilão a mais, então eu vou copiar o objeto e colar aqui para baixo.
+
+[12:33] Temos agora no nosso array dois objetos. Vou trocar aqui o id para 2, vou botar um Leilão 2 em nome e descrição do leilão 2. Nada está acontecendo ainda. Depois que já esperamos que retorne os leilões do mock, precisamos alterar o nome também, const mockLeiloesAtualizada. É uma lista atualizada, senão ele falha aqui porque tem duas variáveis com o mesmo nome.
+
+[13:03] Temos a nossa lista atualizada. Agora, no final do nosso teste, vamos mudar o mock. Então vamos fazer o obtemLeiloes ser implementando por obtemLeiloes.mockImplementation) () => mockLeiloesAtualizado). Agora quando o hook for chamar o obtemLeiloes novamente, ele vai retornar novos leilões, vai retornar essa lista com dois leilões, não só a lista com um apenas.
+
+[13:36] Estamos aqui com obtemLeiloes um dado mock. Agora, aqui para baixo, precisamos fazer uma coisa. Precisamos chamar a função de atualizar os leilões, porque aqui no nosso useListaLeiloes, no nosso hook mesmo, retornamos os leilões e retornamos uma função que vai atualizar esses leilões quando a chamarmos, então precisamos chamar essa função. E precisamos chamar essa função dentro daquele act que já demos uma olhada lá no erro, apareceu esse nome.
+
+[14:07] Esse act vai fazer com que as funções que estejam dentro de estados e use Effects sejam rodados e fiquem aguardando até terminar esse processo, para depois fazer alguma coisa. Então não precisamos fazer waitForNextUpdate de novo. Como que vamos fazer esse act? Primeiro, vamos dar um await act( () =>, vamos criar uma função.
+
+[14:44] E essa função vai fazer o quê? Vai chamar o segundo parâmetro do nosso hook, então o segundo parâmetro está onde? await act( () => result.current[1]() ). Estamos esperando que essa função seja chamada. Esse await é porque essa função é async await mesmo, por isso que estamos dando esse await aqui. Podemos dar um expect() e agora vamos esperar que a lista de leilões não seja mais mockLeiloes, e sim mockLeiloesAtualizada.
+
+[15:31] Vamos esperar que expect(result.current[0]).toEqual(mockLeiloesAtualizada). Vamos salvar aqui e ver o que acontece. Deu uma falha. "Act is not defined". Muito bem. Nós não importamos essa função act, então lá no começo, naquele primeiro import, import { renderHook, act } from '@testing-library/react-hooks'. Pronto. Agora nosso teste passou.
+
+[16:11] Agora estamos testando um hook de fato. É muito legal podermos testar usando essas bibliotecas que vão facilitar a nossa vida. Você não precisa fazer todos esses testes, mas estou dando uma demonstração aqui do que você pode fazer com essa biblioteca. Agora, além dessa biblioteca, instalamos também testing-library/react-native, então vamos ver como fazemos para testar, de fato, a renderização dos componentes em memória. Te vejo em breve.
+
+@@04
+Renderizando o Componente
+
+[00:00] Agora que já vimos sobre testes unitários, também já fizemos mocks, já verificamos chamadas, já fizemos um monte de coisa, vamos dar uma olhada nos testes de componente, o teste que renderiza o componente por baixo dos panos. Eu falei também lá no começo de um outro tipo de teste, que é o teste de interface, que é aquele teste que a aplicação roda no simulador mesmo.
+[00:22] Esse teste de componente não vai precisar do simulador e ele vai também ter uma fidelidade maior do que o teste de unidade, porque ele vai integrar mais componentes, os componentes que estão dentro desse componente que vamos testar. Enfim, vamos testar qual componente então. Vamos pegar aqui "telas > Leilao > componentes > EnviaLance", que é aquele input, aquele texto que podemos digitar para apertar no botão verde e enviar o lance.
+
+[00:53] É esse componente que vamos testar, esse "EnviaLance.js". Ele tem aqui algumas validações, tem o input, tem algumas mensagens de erro e também tem o botão para apertar e poder fazer alguma coisa com ele. Como de costume, iremos na pasta "testes" e criaremos o mesmo caminho. Vou criar aqui uma pasta chamada "telas", mais uma pasta dentro de "telas" chamada "Leilao/componentes".
+
+[01:28] Agora também precisamos criar o arquivo de teste, que é o "EnviaLance.test.js". Como que vamos começar o nosso teste de enviar lance? Vamos importar o arquivo de enviar lance, import EnviaLance from '../../../../src/telas/Leilao/componentes/EnviaLance'. Importamos o arquivo de "EnviaLance" e vamos fazer o describe, describe ('telas/Leilao/componentes/EnviaLance', () => { }. Como segundo parâmetro vamos usar um método e, dentro dele, vamos poder fazer os nossos testes.
+
+[02:40] O que vai ser o nosso teste? Precisamos verificar se quando o botão for pressionado ele envia um lance de fato, então it('deve enviar o lance quando o botão for pressionado', () =>). Esse é o teste que queremos fazer, vamos abrir a função para escrever o nosso teste aqui dentro. Como que podemos chamar o nosso EnviaLance? Vamos utilizar a biblioteca testing-library do React Navigation.
+
+[03:26] Antes desse import aqui vou importar os métodos da biblioteca que vamos precisar, no caso, é só uma por enquanto, import { render } from '@testing-library*/react-native', é a biblioteca de testes focada no React Native. Essa testing-library tem várias bibliotecas para vários tipos de testes diferentes. Agora podemos chamar esse render aqui passando como parâmetro o componente que queremos.
+
+[04:12] Para isso, também vamos ter que importar o React, igual fazemos nos componentes mesmo. Por quê? Porque vamos utilizar um componente, import React from 'react'. Dentro do nosso teste vamos fazer um const { toJSON } = render() e, aqui dentro, vamos renderizar o EnviaLance. Então como vamos fazer? Vamos chamar como se fosse um componente mesmo. Vamos abrir <EnviaLance, e o EnviaLance recebe alguns parâmetros, que podemos ver aqui no começo da nossa função de componente, onde recebemos o enviaLance, que é uma função que vai ser chamada quando clicarmos no botão.
+
+[05:14] E também a cor, é aquela cor do ícone do nosso leilão. Cada leilão tem uma cor, podemos simplesmente colocar qualquer cor aqui, <EnviaLance enviaLance cor="blue", qualquer cor, não tem problema. E vou fechar o componente, <EnviaLance enviaLance cor="blue" />. Eu posso renderizá-lo dessa forma. O enviaLance vou dar um igual aqui e vou chamar uma função vazia por enquanto, enviaLance ={() => }.
+
+[05:45] Vamos salvar. Só checar se dá algum erro quando rodamos o teste, npm test. Está rodando e ele passou. Não deu nenhum erro. Não fizemos nenhuma validação também, apenas isso. Agora vamos dar um console.log(toJSON()). Olha só, o que temos aqui, temos que o tipo é uma view, tem propriedades de estilos que foram printados aqui, também temos os filhos dessa view que vão ser um ExpoBlurView, e você pode ver que temos no nosso componente enviaLance mesmo, é um BlurView, é para ficar aquele efeito bonito que funciona no IOS e no Android, ele só adiciona uma transparência.
+
+[06:46] Mas conseguimos acessar todas as propriedades no formato de JSON do nosso componente. O nosso componente é transformado em um objeto e conseguimos fazer coisas com esse objeto. Aqui, o toJSON() estamos utilizando apenas para ver o que estar acontecendo. Tem um "Saiba Mais" também que vai mostrar como utilizá-lo para fazer snapshots, você pode conferir se quiser, uma outra funcionalidade aqui do toJSON(), porque podemos utilizar isso.
+
+[07:16] Mas não vamos utilizar esse toJSON() nesse momento, vamos fazer outras coisas. Primeiro, vamos implementar esse enviaLance. O enviaLance é uma função que recebemos e ela é chamada depois do validaEnvio, quando clicamos no botão, ele vai validar o envio e ele chama enviaLance. Repara que ela é uma promisse, porque tem um await aqui, então temos que retornar uma promisse também. Aqui vamos criar essa função enviaLance.
+
+[07:59] Antes do render do nosso componente, vamos criar uma const enviaLance =. Vai ser igual a quê? Lembra dos mocks que estávamos utilizando? Podemos criar uma função que é mocável, uma função mocada para que possamos verificar lá se ele foi chamado, quantas vezes, com quais parâmetros e alterar a implementação dessa função. Vamos fazer essa função nessa forma.
+
+[08:28] Como fazemos isso? Chamando jest.fn() com const enviaLance = jest.fn(). Aqui dentro do fn(), como é uma função, podemos implementar o que queremos dentro dela. Vou criar uma nova função new Promisse(resolve => resolve()). Vamos resolver o quê? Podemos resolver o status enviado, por exemplo, porque se formos ver esse enviaLance tem vários status que podem acontecer. Deixa-me abrir "negocio > constantes > estadosLance.js".
+
+[09:19] Tem o estado ENVIADO, que é aquela mensagem "Lance enviado com sucesso", tem o estado NÃO_ENVIADO, que é "Lance não enviado, tente novamente". Apenas esses dois estados são utilizados aqui no nosso enviaLance, então podemos retornar um deles. Vamos importar esses estados, import { ENVIADO } from '../../../../src/negocio/constantes/estadosLance'.
+
+[10:04] Nessa função mock queremos resolver ENVIADO, queremos seja enviado o lance, que a resposta seja mocada aqui sempre que o lance for enviado com sucesso. Agora passamos essa função enviaLance no lugar dessa função vazia que estávamos chamando antes, quando damos o render enviaLance ={enviaLance}. Vou salvar aqui.
+
+[10:31] Na próxima aula, vamos ver mais como é que podemos manipular esse componente. Se olharmos a execução, aqui ainda está passando, está tudo certo, mas vamos ver como que podemos verificar melhor esse componente, fazer ações dentro dele, preencher o campo E clicar no botão mesmo, para que essa função verifique se ela foi chamada. Porque aqui ela não foi chamada ainda, só renderizamos. Te vejo em breve.
+
+@@05
+Para saber mais: Snapshots
+
+O que são snapshots?
+Um tipo de teste muito interessante são os snapshots. Como funciona?
+
+Podemos testar componentes da aplicação usando snapshots, que basicamente verificam se a estrutura do componente permanece a mesma, usando a referência JSON que a renderização retorna.
+
+Porém, devemos ter cuidado com esse tipo de teste, pois ele não testa de fato a regra de negócio, mas, sim, as estruturas e até estilos do componente. Além disso, adicionar esse teste pode não fazer sentido algum no caso de um componente que sofre alterações constantes, já que ele sempre irá falhar e solicitar que atualizemos a snapshot.
+
+Então, quando devemos usar testes de snapshot?
+Em componentes simples, que não contém regras de negócio e que não mudam com frequência. É importante sempre tomar cuidado para que o coverage gerado por esse teste não seja aplicado a subcomponentes, esquecendo, assim, de avaliar se eram necessários testes daqueles também.
+
+Abaixo, você pode ver um exemplo de teste de snapshot:
+
+import React from 'react';
+import { render } from '@testing-library/react-native';
+
+import Componente from '../Componente.js';
+
+describe('Componente.js', () => {
+  it('deve renderizar sem erros', () => {
+    const { toJSON } = render(<Componente />);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+});COPIAR CÓDIGO
+Você pode rodar npm jest -u --coverage=false para atualizar as snapshots que falharam, ou até adicionar este comando aos seus scripts no package.json.
+
+@@06
+Manipulando o Componente
+
+[00:00] Agora que estamos renderizando o nosso componente em memória, vamos testá-lo de fato. Qual o componente? Vou abrir o simulador para entendermos melhor. Vou entrar aqui, por exemplo, nesse leilão de geladeira, e temos um campo aqui embaixo, um input, com um botão. Quando eu digito um valor que seja válido, por exemplo, o valor inicial é 500 eu posso dar um lance de 500, vou digitar 500 e apertar no botão. Ele dá aqui que o lance foi enviado com sucesso.
+[00:28] Para conseguirmos testar um envio de lance precisamos pegar a referência desse input, desse campo de digitar. Para pegarmos essa referência podemos olhar no layout e vemos que tem esse R$ aqui por baixo dos panos, podemos tentar pegar pelo place holder do campo. Podemos pegar por diversas formas diferentes, mas nesse caso vamos testar pelo placeholder.
+
+[00:55] Aqui onde estamos renderizando o nosso componente, no “EnviaLance.test.js”, estamos pegando o toJSON. Eu vou apagar esse toJSON porque não precisamos usá-lo, só vimos mesmo para tentar entender o que estava acontecendo com o render. Ao invés do toJSON eu vou chamar outra função que se chama getByPlaceholdertext, pegar pelo texto do placeholder, const { getByPlaceholderText } = render. O placeholder é esse texto que fica fraquinho aqui.
+
+[01:28] Agora aqui embaixo, depois de renderizarmos, eu vou criar uma constante chamada input que é o campo mesmo, referência do input, e vou fazer um getByPlaceholderText R$, que é o texto no input ali, const input = getByPlaceholderText("R$");. Vamos dar um console.log aqui no input para ver se está vindo alguma coisa, console.log(input);, e precisamos rodar no nosso terminal npm test. Se você já estiver rodando, não precisa rodar de novo, é só apertar a tecla "A" para ele testar novamente.
+
+[02:04] O console.log está retornando um monte de referências e parece que deu certo. Aqui podemos ver que tem o TextInput, e é isso mesmo que queríamos, ele pegou a referência desse componente. Agora, com a referência desse componente, podemos tentar preencher alguma coisa, mas antes de preencher vamos pegar a referência do botão também só para termos tudo referenciado certinho.
+
+[02:31] Para pegarmos a referência do botão, ele está usando um ícone aqui, tem a cor, ele é um tipo de botão. Vamos fazer um jeito diferente para pegarmos. Podemos utilizar as propriedades de acessibilidade para pegar elementos na tela.
+
+[02:48] Eu vou abrir aqui o arquivo "src > telas > Leilao > componentes > EnviaLance.js". Nesse arquivo, o botão aqui não tem nada de acessibilidade, podemos setar aqui no TouchableOpacity, da linha 43, e podemos setar accessibility e dizemos que esse botão aqui, até fica melhor pela acessibilidade, para dizer o que esse botão faz. Podemos dizer que esse botão é o botão de enviar lance, accessibilityHint="Enviar lance".
+
+[03:26] Salvei, não vai mudar nada aqui na nossa tela, porque isso daqui não aparece visualmente, ele vai aparecer somente para questões de acessibilidade. Agora conseguimos pegar pelo accessibilityhint. Primeiro precisamos pegar a função do render, que faz essa busca por campos de acessibilidade. Para fazer isso, vamos dar uma vírgula aqui no render e vai desconstruir junto com o getPlaceholderText o getBy. Podemos digitar accessibility, mas ele tem um atalho também para isso que é "A11Hint", const { getByPlaceholderText, getByA11yHint } = render(.
+
+[04:13] Agora podemos pegar o getByA11yHint. Vamos armazenar essa constante aqui botão, que é o nosso botão, e o texto que colocamos lá que é enviar lance, const botao = getByA11Hint("Enviar lance");. Vou salvar aqui e o ideal é ele não dar nenhum erro. Não deu nenhum erro, ele já está pegando o Enviar lance também.
+
+[04:43] Agora vamos preencher os campos e fazer ações dentro do nosso componente. Para isto podemos usar o fireEvent da biblioteca "testing-library", esse é um dos grandes diferenciais dessa biblioteca para aquela biblioteca que renderiza.
+
+[05:08] Aqui no import, onde importamos o render, vou dar uma vírgula e vou importar também o fireEvent. Agora o fireEvent chamamos aqui embaixo, depois de pegar as instâncias do input do botão, e podemos fazer várias coisas como, por exemplo, changeText, vamos mudar o texto do input ,que vai ser o primeiro parâmetro, e o segundo parâmetro vai ser o que queremos mudar, eu vou escrever 10 aqui no input, entre aspas mesmo porque o input é sempre uma string, fireEvent.changeText(input, "10");
+
+[05:55] Depois de preenchermos o campo precisamos apertar no botão. Existe também um evento para apertar no botão, vamos utilizar o fireEvent.press. Depois temos que dizer o que queremos pressionar, que é o botão, fireEvent.press(botao); Aqui já preenchemos e a apertamos o botão, agora podemos verificar se o nosso método EnviaLance foi chamado.
+
+[06:24] Eu vou fazer aqui um expect(enviaLance).toHaveBeenCalledWith("10"); o que ele tenha sido chamado com o número 10. Se olharmos aqui no enviaLances, quando apertamos, ele chama o validaEnvio, que vai fazer a validação, e recebemos esse valor na função enviaLance, que é a função que estamos chamando aqui.
+
+[07:02] Vamos salvar aqui e verificar o que acontece. Passou no teste, porém estamos recebendo um warning aqui, estamos recebendo que useNativeDriver não está suportado por causa de animações nativas. Está falando aqui que temos que verificar se rodamos o pod install? Estamos no Expo, não precisaríamos receber essa mensagem. Isso acontece porque estamos utilizando a biblioteca React Navigation e essa biblioteca tem uma sessão falando sobre esse problema. Se formos na documentação, em “reactnavigation.org/docs/testing”, já temos aqui algumas coisas que podemos fazer para evitar que ocorram erros.
+
+[07:53] Nesse caso só vamos copiar essa linha aqui do jest.mok e vamos mockar essa biblioteca antes de testar. Eu vou copiar esse mock e vou colar aqui no arquivo mesmo que estamos utilizando antes do describe. Vou colocar esse mock e vou salvar, jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
+
+[08:17] Agora não temos mais o erro, não temos mais o erro de aparecer aquela mensagem porque estamos mockando esse arquivo da navegação, não precisamos dele funcionando exatamente agora quando estamos testando porque estamos renderizando em memória, não estamos renderizando no celular mesmo, resolvemos esse problema.
+
+[08:39] Já estamos verificando se o enviaLance foi chamado com o valor que passamos, que é o 10. Vamos fazer mais uma verificação, vamos verificar fazer um expect se o texto lance enviado com sucesso apareceu na tela, porque precisamos dessa mensagem depois que enviamos um lance, e ele vem com sucesso que é a promise que fizemos aqui, o enviado. Vamos fazer isso. Primeiro precisamos pegar o texto e podemos adicionar uma desconstrução aqui no render para poder pegar o texto.
+
+[09:16] Eu vou quebrar as linhas aqui, para ficar mais visível, e eu vou colocar uma vírgula aqui depois do getByA11yHint, vai ser um getByText, simplesmente isso. Então conseguimos pegar elementos que tenham esse texto dentro, que vão ser textos mesmo. Agora esperamos que o getByText enviado, vamos pegar o elemento que tiver dentro dessa mensagem do enviado, que é essa mensagem: lance enviado com sucesso. E queremos que isso aqui exista, podemos usar uma propriedade que se chama .toBeTruthy, que seja verdadeiro, que exista, expect(getByText(ENVIADO)).toBeTruthy();
+
+[10:13] Recebemos um erro. Por que recebemos esse erro, o que está acontecendo se deu tudo certo até agora? Porque não achou o enviado na nossa tela. Porque quando enviamos, setamos essa mensagem no estado, a mensagem do estado do lance setSucesso, e utilizamos esse estado sucesso para preencher o nosso texto. Só que o estado não é uma coisa que vai aguardar, não é uma coisa síncrona é assíncrono. Precisamos fazer alguma coisa para esperar que esse texto apareça na tela para depois verificar se ele existe.
+
+[10:59] Podemos utilizar um método que vem aqui da nossa biblioteca "testing-library", junto com render, fireEvent. Eu vou importar mais uma coisa no topo que vai ser o waitFor, aguarde para.
+
+[11:19] Eu vou fazer um await aqui no final do arquivo. Antes de chamar o expect do enviado, eu vou fazer um await e vou utilizar essa função waitFor para passar uma função dentro dela, e o que estiver dentro da função ele vai esperar. Eu vou colocar esse expect que fizemos do getByText toBeTruthy, await waitFor(() => { expect(getByText(ENVIADO)).toBeTruthy(); Vou salvar e estamos chamando o await, mas não demos o async aqui em cima.
+
+[11:57] Aqui no teste, precisamos adicionar um async na função do teste também, na função principal do teste, it('deve enviar o lance quando o botão for pressionado', async () => {. Vamos salvar, e ainda temos falha, não conseguiu achar o lance enviado com sucesso. Vamos olhar o código. Se olharmos a função, deveríamos estar mostrando esse enviado, mas se olharmos essa função, eu escrevi errado, Promise é com um s só e não dois ss. Aqui na linha 11 const enviaLance = jest.fn(() => new Promise(resolve => resolve(ENVIADO);
+
+[12:42] Vamos salvar e ver o que acontece. Agora sim, agora temos o método passando, encontramos esse toBeTruthy. Se removermos o waitFor não vamos encontrar, ele dá um erro aqui, falando que não encontrou. Primeiro porque está fora do act, o act é um método que é chamado por vários outros métodos, inclusive esse waitFor. Quando chamamos um render, ele também chama esse act, ele é o que faz toda a mágica por trás de esperar as ações do React Native, do React mesmo, com o waitFor funciona.
+
+[13:24] Agora podemos fazer uma espera de alguma coisa que der errado, ou seja, quando temos aqui lance enviado com sucesso aparecendo na tela, não queremos que a mensagem de erro esteja aparecendo, a mensagem de erro é NAO ENVIADO. Eu vou importar aqui NAO ENVIADO lá dos estados lance, Lance nao enviado, tente novamente. Vou importar aqui no topo junto com ENVIADO.
+
+[14:06] Agora eu quero que essa mensagem não apareça na tela de jeito nenhum. Depois do await ,eu vou fazer um expect e vou chamar uma função expect(() => getByText(NAO-ENVIADO)). Então, quando tentamos chamar um getByText que não conseguimos encontrar, como fizemos antes, e ele não encontrar e dar um erro, falando que não existe, se eu tirar esse getByText(NAO_ENVIADO), vou tirá-lo e vou salvar, ele vai dar um erro aqui falando que o elemento Lance não enviado, tente novamente. Ele não conseguiu encontrar, ele dá uma exceção.
+
+[15:13] Nós queremos verificar que, mesmo que exista uma exceção ali, vamos fazer um expect passando uma função que vai chamar esse getByText. Depois damos um ponto toThrow, expect(() => getByText(NAO_ENVIADO)).toThrow(); e esse toThrow vai dar problema. Esperamos que dê algum problema ao rodar essa função aqui, que tem o getByText. Vamos salvar e ver o que acontece.
+
+[15:49] Agora está passando e estamos esperando que dê algum erro quando tentarmos pegar esse NAO_ENVIADO, porque não queremos que ele apareça na tela. Por exemplo, quando eu digito alguma outra coisa aqui, ele vai dar uma mensagem de erro. Não queremos que nenhuma mensagem de erro apareça na tela, somente a mensagem de "enviado com sucesso". Com isso, nós também aprendemos como validar erros, até podemos passar alguns parâmetros aqui dentro, caso você queira validar um erro mesmo.
+
+[16:25] Antes de sair desse curso, de despedir-se, dê uma olhada na sessão "Faça Como Eu Fiz", para você exercitar mais testes de componente como esse. Também você pode acessar o desafio do curso, que vai fazer você fazer vários tipos de testes que aprendemos nesse curso. Eu espero que você consiga exercitar os conceitos no desafio.
+
+@@07
+Faça como eu fiz: teste o componente com erro
+
+Nesta aula, testamos componentes do React Native carregados em memória. Para reforçar os conceitos vistos e seu aprendizado, você pode finalizar os testes de componente do arquivo telas/Leilao/componentes/EnviaLance.js. Experimente criar o fluxo de teste de quando o lance não é enviado.
+
+Você pode acessar o commit dos testes de unidade desses arquivos por meio deste link.
+
+https://github.com/alura-cursos/react-native-criando-testes-para-sua-aplicacao/tree/FCEFAula4
+
+@@08
+Desafio: Coverage 100%
+
+Agora é sua vez!
+Antes de começar o desafio, lembre de que 100% de coverage não quer dizer que 100% das regras estão sendo testadas, e, para testar todas as regras, muitas vezes não precisamos focar em uma porcentagem de coverage!
+
+Mas, então, por que fazer este desafio? Por um motivo importante: treinar suas habilidades em aplicar testes em diferentes situações. Ou seja, para fins de estudo e aprofundamento!
+
+Neste desafio, você deve atingir 100% de cobertura de testes, considerando a porcentagem de Statements gerada pelo coverage do jest. Para evitar a aplicação da cobertura aos subcomponentes, pode ser interessante que você teste os arquivos na ordem contrária à listada no coverage.
+
+Considerando a lista abaixo de arquivos, comece pelo arquivo telas/ListaLeiloes/componentes/Leilao.js, e, por último, faça o App.js.
+
+Lista de arquivos gerada pelo comando `npm run testFinal`, que foi configurado para rodar o coverage do jest. 
+
+Ao terminar o desafio, compartilhe essa conquista incrível no seu LinkedIn ou outra rede social!
+
+O objetivo deste desafio é praticar os aprendizados construídos ao longo do curso. Assim, pedimos que você aplicasse as técnicas de testes em um contexto diferente, o que é importante para fixar o conteúdo.
+Caso queira conferir a branch com todos os testes feitos, você pode clicar neste link. Lembrando que não existe uma única forma de chegar a 100% de coverage.
+
+https://github.com/alura-cursos/react-native-criando-testes-para-sua-aplicacao/tree/DesafioCoverage
+
+@@09
+O que aprendemos?
+
+Nesta aula, aprendemos a:
+Instalar as bibliotecas @testing-library/react-native e @testing-library/react-hooks;
+Testar hooks usando a biblioteca @testing-library/react-hooks;
+Renderizar componentes em memória usando a @testing-library/react-native;
+Capturar campos do componente carregado em memória;
+Efetuar ações usando o fireEvent da @testing-library/react-native.
+
+@@10
+Conclusão
+
+[00:00] Parabéns por ter concluído mais um curso de React Native aqui na Alura. Nesse curso testamos aplicações de leilões e fizemos testes unitários. Por exemplo, aqui no "negocio/formatadores > moeda.test.js", testamos o formatoBrasileiroParaDecimal e o formataDecimalParaReal. Testamos esses valores reais que estão sendo exibidos aqui na nossa aplicação.
+[00:26] Nós também testamos o repositório de leilões. No "repositorio > leilao.test.js", fizemos um mock simulamos a API de leilões, para que pudéssemos fazer o teste do método que busca os leilões sem precisar fazer uma requisição na API mesmo. Caso a API esteja fora do ar ou qualquer coisa, o nosso teste não vai falhar por causa disso. Estamos simulando a API retornando o que esperamos retornar no nosso teste.
+
+[00:57] Além disso, nós também estamos testando a requisição com erro e estamos testando se métodos foram chamados com os parâmetros. Estamos testando se a requisição para a API foi realmente chamada com o /leiloes, por exemplo.
+
+[01:12] Também testamos os nossos hooks, aqui em "tests/hooks/useListaLeiloes.test.js". Testamos o hook de useListaLeiloes, que é o hook que usamos na tela para pegar a lista de leilões.
+
+[01:28] Dessa vez, ao invés de mockarmos a API, nós mockamos o próprio repositório de leilões e utilizamos a biblioteca "testing-library/react-hooks" para fazer a renderização desse hook, porque normalmente não poderíamos renderizar um hook fora de um componente. Essa biblioteca nos ajudou a renderizar o hook, e o método act nos ajudou a fazer ações dentro do hook, por exemplo, chamar o atualizaLista que o próprio hook retorna.
+
+[01:58] Além do hook nós também testamos o componente de enviaLance. Ele está dentro de "telas/Leilao/componentes" e é o componente que, se entramos aqui em algum leilão da nossa aplicação, tem esse formulário aqui embaixo para enviarmos o lance.
+
+[02:16] Testamos renderizar esse formulário em memória e digitar um valor aqui, por exemplo, e apertar no botão para verificar se recebemos a mensagem com sucesso, se a função de enviar lance realmente foi chamada e com o valor certo que escrevemos aqui. Por isso utilizamos os fireEvent para mudar o texto, e isso tudo graças a biblioteca "testing-library-react=native" que utilizamos, que é uma irmã da biblioteca "testing-library-react-hooks" e nos possibilitou a fazer essas coisas mais facilmente.
+
+[02:56] Além disso, se você fez o desafio que foi proposto nesse curso, você também testou toda a aplicação e pode ter utilizado, para te ajudar, o coverage que instalamos na nossa aplicação. Quando rodamos o npm run testFinal geramos o coverage também. Ele aparece aqui no terminal, mas vimos que ele está aqui nessa pasta "Coverage", dentro do "Icov-report", e abrimos esse "index.html" lá no nosso navegador.
+
+[03:33] Aqui no navegador, ele vai gerar para nós uma porcentagem de quantos por centro do código está testado. Até o fim desse curso o básico seria de 26.57% do código testado. Se você concluiu o desafio, você teve mais do que isso.
+
+[03:54] Aqui conseguimos ver exatamente quais os métodos que foram testados, se faltou testarmos alguma coisa, mas também lembramos que o coverage não é tudo. Não adianta termos 100% de coverage, que não quer dizer que testamos todos os requisitos da nossa aplicação. É importante focarmos mais em testes de qualidade do que simplesmente aumentar o coverage.
+
+[04:20] Espero que você tenha gostado desse curso. Não esqueça de deixar o comentário aqui no final para sabermos o que você achou, quais foram os pontos positivos, quais foram os pontos negativos desse curso para que continuemos melhorando aqui na Alura. Se você gostar, crie um projeto no GitHub, compartilhe na redes sociais e nos marque nas redes sociais também, lá no LinkedIn e no GitHub. Até o próximo curso.
+
+@@11
+Créditos
+
+Este curso foi produzido pela equipe de mobile da Alura, incluindo principalmente:
+Natalia Kelim Thiel - Instrutora;
+André Oliveira Cunha - Instrutor;
+Alex Felipe - Instrutor e tech lead;
+Christian Rosa - Didática;
+Flávia de Oliveira - Produtora de vídeo;
+Vinícius Oliveira ("Hide") - Editor de vídeo
